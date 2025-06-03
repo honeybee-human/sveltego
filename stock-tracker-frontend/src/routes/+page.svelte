@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import '../styles/page.css';
+	import TradingPanel from '../components/TradingPanel.svelte';
 
 	// Type definitions
 	interface StockQuote {
@@ -189,7 +190,7 @@
 			yaxis: { 
 				title: { text: 'Price ($)' },
 				labels: {
-					formatter: (value: number) => `$${value.toFixed(2)}`
+					formatter: (value: number) => `${value.toFixed(2)}`
 				},
 				forceNiceScale: false,
 				decimalsInFloat: 2
@@ -202,7 +203,7 @@
 			tooltip: {
 				x: { format: 'dd MMM yyyy HH:mm:ss' },
 				y: {
-					formatter: (value: number) => `$${value.toFixed(4)}`
+					formatter: (value: number) => `${value.toFixed(4)}`
 				}
 			},
 			colors: ['#4299e1', '#48bb78', '#ed8936', '#9f7aea', '#f56565', '#38b2ac'],
@@ -235,10 +236,10 @@
 						
 						return `
 							<div class="candlestick-tooltip">
-								<div><strong>Open:</strong> $${data.y[0].toFixed(2)}</div>
-								<div><strong>High:</strong> $${data.y[1].toFixed(2)}</div>
-								<div><strong>Low:</strong> $${data.y[2].toFixed(2)}</div>
-								<div><strong>Close:</strong> $${data.y[3].toFixed(2)}</div>
+								<div><strong>Open:</strong> ${data.y[0].toFixed(2)}</div>
+								<div><strong>High:</strong> ${data.y[1].toFixed(2)}</div>
+								<div><strong>Low:</strong> ${data.y[2].toFixed(2)}</div>
+								<div><strong>Close:</strong> ${data.y[3].toFixed(2)}</div>
 							</div>
 						`;
 					}
@@ -597,7 +598,7 @@
 	}
 
 	const formatPrice = (price: number | undefined): string => 
-		price ? `$${price.toFixed(2)}` : 'N/A';
+		price ? `${price.toFixed(2)}` : 'N/A';
 
 	const formatPercent = (percent: number | undefined): string => {
 		if (!percent) return 'N/A';
@@ -788,6 +789,8 @@
 				Updating data...
 			</div>
 		{/if}
+
+		<TradingPanel />
 	</div>
 
 	<style>
