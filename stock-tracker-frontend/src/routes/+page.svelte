@@ -626,211 +626,265 @@
 			{/if}
 		</header>
 
-		<!-- Enhanced Controls -->
-		<div class="controls">
-			<div class="chart-type-controls">
-				<label>Chart Type:</label>
-				<button 
-					class="chart-type-btn" 
-					class:active={chartType === 'line'}
-					onclick={() => changeChartType('line')}
-				>
-					📈 Line
-				</button>
-				<button 
-					class="chart-type-btn" 
-					class:active={chartType === 'candlestick'}
-					onclick={() => changeChartType('candlestick')}
-				>
-					🕯️ Candlestick
-				</button>
-				<button 
-					class="chart-type-btn" 
-					class:active={chartType === 'area'}
-					onclick={() => changeChartType('area')}
-				>
-					📊 Area
-				</button>
-				<button 
-					class="chart-type-btn" 
-					class:active={chartType === 'volume'}
-					onclick={() => changeChartType('volume')}
-				>
-					📦 Volume
-				</button>
+		<div class="main-content">
+			<div class="trading-section">
+				<TradingPanel />
 			</div>
 
-			<div class="timeframe-controls">
-				<label>Timeframe:</label>
-				<button 
-					class="timeframe-btn" 
-					class:active={selectedTimeframe === 5}
-					onclick={() => changeTimeframe(5)}
-				>
-					5min
-				</button>
-				<button 
-					class="timeframe-btn" 
-					class:active={selectedTimeframe === 15}
-					onclick={() => changeTimeframe(15)}
-				>
-					15min
-				</button>
-				<button 
-					class="timeframe-btn" 
-					class:active={selectedTimeframe === 30}
-					onclick={() => changeTimeframe(30)}
-				>
-					30min
-				</button>
-				<button 
-					class="timeframe-btn" 
-					class:active={selectedTimeframe === 60}
-					onclick={() => changeTimeframe(60)}
-				>
-					1hr
-				</button>
-				<button 
-					class="timeframe-btn" 
-					class:active={selectedTimeframe === 240}
-					onclick={() => changeTimeframe(240)}
-				>
-					4hr
-				</button>
-				<button 
-					class="timeframe-btn" 
-					class:active={selectedTimeframe === 1440}
-					onclick={() => changeTimeframe(1440)}
-				>
-					1day
-				</button>
-			</div>
-
-			<button class="clear-btn" onclick={clearHistory}>
-				🗑️ Clear History
-			</button>
-			
-			<div class="update-info">
-				Updates every 15 seconds • Persistent data storage
-			</div>
-		</div>
-
-		<!-- Search Section -->
-		<div class="search-section">
-			<div class="search-box">
-				<input
-					type="text"
-					placeholder="Search stocks (e.g., AAPL, GOOGL, AMD)"
-					bind:value={searchQuery}
-					oninput={searchStocks}
-				/>
-			</div>
-			
-			{#if searchResults.length > 0}
-				<div class="search-results">
-					{#each searchResults.slice(0, 5) as result}
-						<div class="search-result" onclick={() => addStock(result.symbol)}>
-							<strong>{result.symbol}</strong> - {result.description}
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</div>
-
-		<!-- Followed Stocks -->
-		<div class="stocks-section">
-			<h2>Followed Stocks</h2>
-			<div class="stock-cards">
-				{#each followedStocks as symbol}
-					<div class="stock-card">
-						<div class="stock-header">
-							<h3>{symbol}</h3>
-							<div class="stock-meta">
-								<span class="data-points">{getDataPointCount(symbol)} points</span>
-								<button 
-									class="remove-btn"
-									onclick={() => removeStock(symbol)}
-									aria-label="Remove {symbol}"
-								>
-									✕
-								</button>
-							</div>
-						</div>
-						
-						{#if stockData[symbol]?.quote}
-							<div class="stock-info">
-								<div class="price">
-									{formatPrice(stockData[symbol].quote.c)}
-								</div>
-								<div class="change" class:positive={stockData[symbol].quote.d > 0} class:negative={stockData[symbol].quote.d < 0}>
-									{formatPrice(stockData[symbol].quote.d)} ({formatPercent(stockData[symbol].quote.dp)})
-								</div>
-								<div class="details">
-									<span>Open: {formatPrice(stockData[symbol].quote.o)}</span>
-									<span>High: {formatPrice(stockData[symbol].quote.h)}</span>
-									<span>Low: {formatPrice(stockData[symbol].quote.l)}</span>
-								</div>
-							</div>
-						{:else}
-							<div class="loading">Loading...</div>
-						{/if}
+			<div class="stock-section">
+				<!-- Enhanced Controls -->
+				<div class="controls">
+					<div class="chart-type-controls">
+						<label>Chart Type:</label>
+						<button 
+							class="chart-type-btn" 
+							class:active={chartType === 'line'}
+							on:click={() => changeChartType('line')}
+						>
+							📈 Line
+						</button>
+						<button 
+							class="chart-type-btn" 
+							class:active={chartType === 'candlestick'}
+							on:click={() => changeChartType('candlestick')}
+						>
+							🕯️ Candlestick
+						</button>
+						<button 
+							class="chart-type-btn" 
+							class:active={chartType === 'area'}
+							on:click={() => changeChartType('area')}
+						>
+							📊 Area
+						</button>
+						<button 
+							class="chart-type-btn" 
+							class:active={chartType === 'volume'}
+							on:click={() => changeChartType('volume')}
+						>
+							📦 Volume
+						</button>
 					</div>
-				{/each}
-			</div>
-		</div>
 
-		<!-- Chart Section -->
-		<div class="chart-section">
-			<div bind:this={chartContainer}></div>
+					<div class="timeframe-controls">
+						<label>Timeframe:</label>
+						<button 
+							class="timeframe-btn" 
+							class:active={selectedTimeframe === 5}
+							on:click={() => changeTimeframe(5)}
+						>
+							5min
+						</button>
+						<button 
+							class="timeframe-btn" 
+							class:active={selectedTimeframe === 15}
+							on:click={() => changeTimeframe(15)}
+						>
+							15min
+						</button>
+						<button 
+							class="timeframe-btn" 
+							class:active={selectedTimeframe === 30}
+							on:click={() => changeTimeframe(30)}
+						>
+							30min
+						</button>
+						<button 
+							class="timeframe-btn" 
+							class:active={selectedTimeframe === 60}
+							on:click={() => changeTimeframe(60)}
+						>
+							1hr
+						</button>
+						<button 
+							class="timeframe-btn" 
+							class:active={selectedTimeframe === 240}
+							on:click={() => changeTimeframe(240)}
+						>
+							4hr
+						</button>
+						<button 
+							class="timeframe-btn" 
+							class:active={selectedTimeframe === 1440}
+							on:click={() => changeTimeframe(1440)}
+						>
+							1day
+						</button>
+					</div>
+
+					<button class="clear-btn" on:click={clearHistory}>
+						🗑️ Clear History
+					</button>
+					
+					<div class="update-info">
+						Updates every 15 seconds • Persistent data storage
+					</div>
+				</div>
+
+				<!-- Search Section -->
+				<div class="search-section">
+					<div class="search-box">
+						<input
+							type="text"
+							placeholder="Search stocks (e.g., AAPL, GOOGL, AMD)"
+							bind:value={searchQuery}
+							on:input={searchStocks}
+						/>
+					</div>
+					
+					{#if searchResults.length > 0}
+						<div class="search-results">
+							{#each searchResults.slice(0, 5) as result}
+								<div class="search-result" on:click={() => addStock(result.symbol)}>
+									<strong>{result.symbol}</strong> - {result.description}
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+
+				<!-- Followed Stocks -->
+				<div class="stocks-section">
+					<h2>Followed Stocks</h2>
+					<div class="stock-cards">
+						{#each followedStocks as symbol}
+							<div class="stock-card">
+								<div class="stock-header">
+									<h3>{symbol}</h3>
+									<div class="stock-meta">
+										<span class="data-points">{getDataPointCount(symbol)} points</span>
+										<button 
+											class="remove-btn"
+											on:click={() => removeStock(symbol)}
+											aria-label="Remove {symbol}"
+										>
+											✕
+										</button>
+									</div>
+								</div>
+								
+								{#if stockData[symbol]?.quote}
+									<div class="stock-info">
+										<div class="price">
+											{formatPrice(stockData[symbol].quote.c)}
+										</div>
+										<div class="change" class:positive={stockData[symbol].quote.d > 0} class:negative={stockData[symbol].quote.d < 0}>
+											{formatPrice(stockData[symbol].quote.d)} ({formatPercent(stockData[symbol].quote.dp)})
+										</div>
+										<div class="details">
+											<span>Open: {formatPrice(stockData[symbol].quote.o)}</span>
+											<span>High: {formatPrice(stockData[symbol].quote.h)}</span>
+											<span>Low: {formatPrice(stockData[symbol].quote.l)}</span>
+										</div>
+									</div>
+								{:else}
+									<div class="loading">Loading...</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<!-- Chart Section -->
+				<div class="chart-section">
+					<div bind:this={chartContainer}></div>
+				</div>
+			</div>
 		</div>
 
 		{#if loading}
 			<div class="loading-indicator">
-				Updating data...
+				<div class="spinner"></div>
 			</div>
 		{/if}
-
-		<TradingPanel />
 	</div>
 
 	<style>
+		.container {
+			max-width: 100%;
+			padding: 0.75rem;
+		}
+
+		header {
+			margin-bottom: 1rem;
+		}
+
+		header h1 {
+			font-size: 1.5rem;
+			margin-bottom: 0.25rem;
+		}
+
+		header p {
+			font-size: 0.875rem;
+			color: #666;
+			margin: 0;
+		}
+
+		.last-update {
+			font-size: 0.75rem;
+			color: #888;
+			margin-top: 0.25rem;
+		}
+
+		.main-content {
+			display: grid;
+			grid-template-columns: 350px 1fr;
+			gap: 1rem;
+			margin-top: 1rem;
+		}
+
+		.trading-section {
+			position: sticky;
+			top: 0.75rem;
+			height: calc(100vh - 1.5rem);
+			overflow-y: auto;
+		}
+
+		.stock-section {
+			min-width: 0;
+		}
+
 		.controls {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 1rem;
+			gap: 0.75rem;
 			align-items: center;
-			margin-bottom: 1.5rem;
-			padding: 1rem;
+			margin-bottom: 1rem;
+			padding: 0.75rem;
 			background: #f8f9fa;
-			border-radius: 8px;
+			border-radius: 6px;
+			font-size: 0.875rem;
 		}
 
 		.chart-type-controls,
 		.timeframe-controls {
 			display: flex;
 			align-items: center;
-			gap: 0.5rem;
+			gap: 0.375rem;
 		}
 
 		.chart-type-controls label,
 		.timeframe-controls label {
-			font-weight: 600;
-			margin-right: 0.5rem;
+			font-weight: 500;
+			margin-right: 0.375rem;
+			color: #444;
 		}
 
 		.chart-type-btn,
 		.timeframe-btn {
-			padding: 0.5rem 1rem;
+			padding: 0.375rem 0.75rem;
 			border: 1px solid #ddd;
 			background: white;
 			border-radius: 4px;
 			cursor: pointer;
-			transition: all 0.2s;
+			transition: all 0.15s;
+			font-size: 0.8125rem;
 		}
 
 		.chart-type-btn:hover,
 		.timeframe-btn:hover {
 			background: #e9ecef;
+			border-color: #ccc;
 		}
 
 		.chart-type-btn.active,
@@ -841,12 +895,13 @@
 		}
 
 		.clear-btn {
-			padding: 0.5rem 1rem;
+			padding: 0.375rem 0.75rem;
 			background: #dc3545;
 			color: white;
 			border: none;
 			border-radius: 4px;
 			cursor: pointer;
+			font-size: 0.8125rem;
 		}
 
 		.clear-btn:hover {
@@ -854,9 +909,194 @@
 		}
 
 		.update-info {
-			font-size: 0.875rem;
+			font-size: 0.75rem;
 			color: #6c757d;
 			margin-left: auto;
+		}
+
+		.search-section {
+			margin-bottom: 1rem;
+		}
+
+		.search-box input {
+			width: 100%;
+			padding: 0.5rem;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			font-size: 0.875rem;
+		}
+
+		.search-results {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: white;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			margin-top: 0.25rem;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+			z-index: 1000;
+		}
+
+		.search-result {
+			padding: 0.5rem;
+			cursor: pointer;
+			font-size: 0.875rem;
+			border-bottom: 1px solid #eee;
+		}
+
+		.search-result:last-child {
+			border-bottom: none;
+		}
+
+		.search-result:hover {
+			background: #f8f9fa;
+		}
+
+		.stocks-section {
+			margin-bottom: 1rem;
+		}
+
+		.stocks-section h2 {
+			font-size: 1.125rem;
+			margin-bottom: 0.75rem;
+			color: #333;
+		}
+
+		.stock-cards {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+			gap: 0.75rem;
+		}
+
+		.stock-card {
+			background: white;
+			border: 1px solid #eee;
+			border-radius: 6px;
+			padding: 0.75rem;
+			transition: all 0.15s;
+		}
+
+		.stock-card:hover {
+			box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+			transform: translateY(-1px);
+		}
+
+		.stock-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 0.5rem;
+		}
+
+		.stock-header h3 {
+			font-size: 1rem;
+			margin: 0;
+			color: #333;
+		}
+
+		.stock-meta {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			font-size: 0.75rem;
+			color: #666;
+		}
+
+		.data-points {
+			color: #6c757d;
+		}
+
+		.remove-btn {
+			padding: 0.125rem 0.375rem;
+			background: none;
+			border: none;
+			color: #dc3545;
+			cursor: pointer;
+			font-size: 0.875rem;
+			opacity: 0.6;
+			transition: opacity 0.15s;
+		}
+
+		.remove-btn:hover {
+			opacity: 1;
+		}
+
+		.stock-info {
+			font-size: 0.875rem;
+		}
+
+		.price {
+			font-size: 1.125rem;
+			font-weight: 600;
+			color: #333;
+			margin-bottom: 0.25rem;
+		}
+
+		.change {
+			font-size: 0.875rem;
+			margin-bottom: 0.375rem;
+		}
+
+		.change.positive {
+			color: #28a745;
+		}
+
+		.change.negative {
+			color: #dc3545;
+		}
+
+		.details {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			font-size: 0.75rem;
+			color: #666;
+		}
+
+		.details span {
+			background: #f8f9fa;
+			padding: 0.125rem 0.375rem;
+			border-radius: 3px;
+		}
+
+		.chart-section {
+			background: white;
+			border: 1px solid #eee;
+			border-radius: 6px;
+			padding: 0.75rem;
+			margin-bottom: 1rem;
+		}
+
+		.loading-indicator {
+			position: fixed;
+			bottom: 1rem;
+			right: 1rem;
+			background: #007bff;
+			width: 24px;
+			height: 24px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+			z-index: 1000;
+		}
+
+		.spinner {
+			width: 16px;
+			height: 16px;
+			border: 2px solid rgba(255,255,255,0.3);
+			border-radius: 50%;
+			border-top-color: white;
+			animation: spin 0.8s linear infinite;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
 		}
 
 		:global(.candlestick-tooltip) {
@@ -864,11 +1104,11 @@
 			background: rgba(0, 0, 0, 0.8);
 			color: white;
 			border-radius: 4px;
-			font-size: 0.875rem;
+			font-size: 0.75rem;
 		}
 
 		:global(.candlestick-tooltip div) {
-			margin: 0.25rem 0;
+			margin: 0.125rem 0;
 		}
 	</style>
 </main>
