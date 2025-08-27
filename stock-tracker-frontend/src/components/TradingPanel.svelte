@@ -12,7 +12,6 @@
     let loading = false;
 
     onMount(async () => {
-        // Fetch initial stock data for any stocks in the store
         for (const symbol of Object.keys($stocks)) {
             try {
                 await stocks.fetchStockData(symbol);

@@ -4,7 +4,6 @@
 	import '../styles/page.css';
 	import TradingPanel from '../components/TradingPanel.svelte';
 
-	// Type definitions
 	interface StockQuote {
 		c: number; // current price
 		d: number; // change
@@ -44,7 +43,7 @@
 		quote: StockQuote;
 		candles: StockCandles;
 		priceHistory: PricePoint[];
-		candleHistory: CandlePoint[]; // New: candlestick data
+		candleHistory: CandlePoint[];
 	}
 
 	interface SearchResult {
@@ -59,12 +58,10 @@
 		result: SearchResult[];
 	}
 
-	// ApexCharts types
 	type ApexCharts = any;
 	type ApexOptions = any;
 	type ChartType = 'line' | 'candlestick' | 'area' | 'volume';
 
-	// State management
 	let followedStocks = $state<string[]>(['AAPL', 'GOOGL', 'MSFT', 'TSLA']);
 	let stockData = $state<Record<string, StockData>>({});
 	let chartContainer = $state<HTMLElement>();
@@ -75,30 +72,25 @@
 	let ApexChartsClass = $state<any>(null);
 	let lastUpdateTime = $state<string>('');
 	let chartType = $state<ChartType>('line');
-	let selectedTimeframe = $state<number>(30); // minutes
+	let selectedTimeframe = $state<number>(30);
 
 	const API_BASE: string = 'http://localhost:8080/api';
-	const MAX_HISTORY_POINTS = 500; // Increased for better historical view
-	const CANDLE_INTERVAL_MS = 60000; // 1 minute candles
+	const MAX_HISTORY_POINTS = 500;
+	const CANDLE_INTERVAL_MS = 60000;
 	let intervalId: number | null = null;
 	let currentCandleData = $state<Record<string, CandlePoint>>({});
 
 	onMount(async () => {
 		if (browser) {
-			// Dynamically import ApexCharts
 			const ApexChartsModule = await import('apexcharts');
 			ApexChartsClass = ApexChartsModule.default;
 			
-			// Initialize with stored data FIRST to prevent empty start
 			loadStoredData();
 			
-			// Then initialize chart with existing data
 			initChart();
 			
-			// Load new data without clearing existing
 			await loadStockData();
 			
-			// Update every 15 seconds for more responsive tracking
 			intervalId = setInterval(loadStockData, 15000);
 		}
 	});
@@ -110,7 +102,6 @@
 		if (chart) {
 			chart.destroy();
 		}
-		// Save data before component unmounts
 		saveDataToStorage();
 	});
 
@@ -121,7 +112,6 @@
 		chart = new ApexChartsClass(chartContainer, options);
 		chart.render();
 		
-		// Update chart with existing data immediately
 		updateChart();
 	}
 
@@ -161,7 +151,7 @@
 					}
 				}
 			},
-			series: [], // Initialize empty series
+			series: [],
 			dataLabels: { enabled: false },
 			title: { 
 				text: `Stock ${chartType === 'candlestick' ? 'Candlestick' : 'Price'} Chart`, 
@@ -214,7 +204,6 @@
 			}
 		};
 
-		// Specific options for different chart types
 		if (chartType === 'candlestick') {
 			return {
 				...baseOptions,
@@ -307,7 +296,6 @@
 
 				const quote: StockQuote = await quoteResponse.json();
 				
-				// Get existing data or create new - PRESERVE existing history
 				const existingData = stockData[symbol] || {
 					quote: quote,
 					candles: { c: [], h: [], l: [], o: [], s: 'ok', t: [], v: [] },
@@ -315,27 +303,22 @@
 					candleHistory: []
 				};
 
-				// Create realistic price variation for demo
 				const basePrice = quote.c;
-				const variation = (Math.random() - 0.5) * (basePrice * 0.002); // ±0.2% variation
+				const variation = (Math.random() - 0.5) * (basePrice * 0.002);
 				const currentPrice = Math.max(0, basePrice + variation);
 
-				// Update current candle or create new one
 				updateCandleData(symbol, currentTime, currentPrice, existingData);
 
-				// Add new price point to history
 				const newPricePoint: PricePoint = {
 					timestamp: currentTime,
 					price: currentPrice
 				};
 
-				// Preserve existing history and add new point
 				const updatedHistory = [...existingData.priceHistory, newPricePoint]
 					.slice(-MAX_HISTORY_POINTS);
 
-				// Update stock data while preserving history
 				stockData[symbol] = {
-					quote: { ...quote, c: currentPrice }, // Update current price
+					quote: { ...quote, c: currentPrice },
 					candles: existingData.candles,
 					priceHistory: updatedHistory,
 					candleHistory: existingData.candleHistory
@@ -350,39 +333,33 @@
 		lastUpdateTime = new Date().toLocaleTimeString();
 		loading = false;
 		
-		// Save to storage periodically
 		saveDataToStorage();
 	}
 
 	function updateCandleData(symbol: string, timestamp: number, price: number, existingData: StockData): void {
 		const candleStartTime = Math.floor(timestamp / CANDLE_INTERVAL_MS) * CANDLE_INTERVAL_MS;
 		
-		// Get current candle being built
 		let currentCandle = currentCandleData[symbol];
 		
 		if (!currentCandle || currentCandle.timestamp !== candleStartTime) {
-			// Start new candle
 			currentCandle = {
 				timestamp: candleStartTime,
 				open: price,
 				high: price,
 				low: price,
 				close: price,
-				volume: Math.floor(Math.random() * 1000000) // Demo volume
+				volume: Math.floor(Math.random() * 1000000)
 			};
 			currentCandleData[symbol] = currentCandle;
 		} else {
-			// Update existing candle
 			currentCandle.high = Math.max(currentCandle.high, price);
 			currentCandle.low = Math.min(currentCandle.low, price);
 			currentCandle.close = price;
 		}
 
-		// Check if we should close the current candle and add to history
-		if (timestamp - candleStartTime >= CANDLE_INTERVAL_MS - 5000) { // Close 5 seconds before next candle
+		if (timestamp - candleStartTime >= CANDLE_INTERVAL_MS - 5000) {
 			const candleHistory = [...existingData.candleHistory];
 			
-			// Replace or add the candle
 			const existingIndex = candleHistory.findIndex(c => c.timestamp === candleStartTime);
 			if (existingIndex >= 0) {
 				candleHistory[existingIndex] = { ...currentCandle };
@@ -390,7 +367,6 @@
 				candleHistory.push({ ...currentCandle });
 			}
 			
-			// Keep last MAX_HISTORY_POINTS candles
 			existingData.candleHistory = candleHistory.slice(-MAX_HISTORY_POINTS);
 		}
 	}
@@ -497,10 +473,7 @@
 			const stored = localStorage.getItem('stockTrackerData');
 			if (stored) {
 				const parsedData = JSON.parse(stored);
-				// Load all stored data, don't filter by age on startup
-				// This prevents the "empty restart" issue
 				Object.keys(parsedData).forEach(symbol => {
-					// Ensure all required properties exist
 					if (parsedData[symbol]) {
 						parsedData[symbol].candleHistory = parsedData[symbol].candleHistory || [];
 						parsedData[symbol].priceHistory = parsedData[symbol].priceHistory || [];
@@ -517,7 +490,6 @@
 
 	function saveDataToStorage(): void {
 		try {
-			// Only save recent data to prevent localStorage bloat
 			const dataToSave: Record<string, StockData> = {};
 			const dayAgo = Date.now() - (24 * 60 * 60 * 1000);
 			

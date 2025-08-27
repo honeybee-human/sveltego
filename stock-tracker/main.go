@@ -45,7 +45,6 @@ type APIError struct {
 var finnhubAPIKey string
 
 func main() {
-	// Load .env file if it exists
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using system environment variables")
 	}
@@ -57,7 +56,6 @@ func main() {
 
 	r := mux.NewRouter()
 
-	// Enable CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000", "http://localhost:4173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -65,12 +63,10 @@ func main() {
 		AllowCredentials: true,
 	})
 
-	// Routes
 	r.HandleFunc("/api/quote/{symbol}", getStockQuote).Methods("GET")
 	r.HandleFunc("/api/candles/{symbol}", getStockCandles).Methods("GET")
 	r.HandleFunc("/api/search/{query}", searchStocks).Methods("GET")
 
-	// Health check endpoint
 	r.HandleFunc("/api/health", healthCheck).Methods("GET")
 
 	handler := c.Handler(r)
@@ -110,7 +106,6 @@ func getStockQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle different API response codes
 	switch resp.StatusCode {
 	case http.StatusOK:
 		var quote StockQuote
@@ -141,9 +136,8 @@ func getStockCandles(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	symbol := strings.ToUpper(vars["symbol"])
 
-	// Get data for last 30 days
 	to := time.Now().Unix()
-	from := to - (30 * 24 * 60 * 60) // 30 days ago
+	from := to - (30 * 24 * 60 * 60)
 
 	url := fmt.Sprintf("https://finnhub.io/api/v1/stock/candle?symbol=%s&resolution=D&from=%d&to=%d&token=%s",
 		symbol, from, to, finnhubAPIKey)
@@ -164,7 +158,6 @@ func getStockCandles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle different API response codes
 	switch resp.StatusCode {
 	case http.StatusOK:
 		w.Header().Set("Content-Type", "application/json")
@@ -174,14 +167,13 @@ func getStockCandles(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, "API key invalid or expired", http.StatusUnauthorized)
 	case http.StatusForbidden:
 		log.Printf("Forbidden candles request for %s - historical data may require paid plan", symbol)
-		// Return mock data instead of error for better UX
 		sendMockCandlesData(w, symbol)
 	case http.StatusTooManyRequests:
 		log.Printf("Rate limit exceeded for candles %s", symbol)
 		sendErrorResponse(w, "Rate limit exceeded", http.StatusTooManyRequests)
 	default:
 		log.Printf("Finnhub API returned status %d for candles %s", resp.StatusCode, symbol)
-		sendMockCandlesData(w, symbol) // Fallback to mock data
+		sendMockCandlesData(w, symbol)
 	}
 }
 
@@ -207,7 +199,6 @@ func searchStocks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Handle different API response codes
 	switch resp.StatusCode {
 	case http.StatusOK:
 		w.Header().Set("Content-Type", "application/json")
@@ -238,7 +229,6 @@ func sendErrorResponse(w http.ResponseWriter, message string, code int) {
 }
 
 func sendMockCandlesData(w http.ResponseWriter, symbol string) {
-	// Create mock historical data for demonstration
 	now := time.Now().Unix()
 	mockCandles := StockCandle{
 		Close:     []float64{150.0, 152.0, 148.0, 155.0, 153.0},

@@ -91,7 +91,6 @@ function createStockStore() {
                 
                 const quote: StockQuote = await quoteResponse.json();
                 
-                // Create initial stock data
                 const stockData: StockData = {
                     quote,
                     candles: {
@@ -107,7 +106,6 @@ function createStockStore() {
                     candleHistory: []
                 };
 
-                // Add to store
                 update(stocks => ({
                     ...stocks,
                     [symbol]: stockData
