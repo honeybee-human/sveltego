@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import type { StockData, StockQuote, PricePoint, CandlePoint, SearchResponse } from '../types';
+import type { StockData, StockQuote, StockCandles, PricePoint, CandlePoint, SearchResponse } from '../types';
 
 const API_BASE: string = 'http://localhost:8080/api';
 const MAX_HISTORY_POINTS = 500;
@@ -27,6 +27,8 @@ export class DataLoader {
 
 				const quote: StockQuote = await quoteResponse.json();
 				
+				const candlestickData = await this.fetchCandlestickData(symbol);
+				
 				const existingData = updatedStockData[symbol] || {
 					quote: quote,
 					candles: { c: [], h: [], l: [], o: [], s: 'ok', t: [], v: [] },
@@ -36,6 +38,8 @@ export class DataLoader {
 
 				const basePrice = quote.c;
 				const currentPrice = basePrice;
+
+				const candleHistory = this.convertCandlesToHistory(candlestickData);
 
 				this.updateCandleData(symbol, currentTime, currentPrice, existingData);
 
@@ -49,9 +53,9 @@ export class DataLoader {
 
 				updatedStockData[symbol] = {
 					quote: { ...quote, c: currentPrice },
-					candles: existingData.candles,
+					candles: candlestickData,
 					priceHistory: updatedHistory,
-					candleHistory: existingData.candleHistory
+					candleHistory: candleHistory.length > 0 ? candleHistory : existingData.candleHistory
 				};
 
 			} catch (error) {
@@ -60,6 +64,44 @@ export class DataLoader {
 		}
 		
 		return updatedStockData;
+	}
+
+	async fetchCandlestickData(symbol: string): Promise<StockCandles> {
+		try {
+			const candlesResponse = await fetch(`${API_BASE}/candles/${symbol}`);
+			
+			if (!candlesResponse.ok) {
+				console.warn(`Failed to fetch candles for ${symbol}, status: ${candlesResponse.status}`);
+				return { c: [], h: [], l: [], o: [], s: 'no_data', t: [], v: [] };
+			}
+
+			const candlesData: StockCandles = await candlesResponse.json();
+			return candlesData;
+		} catch (error) {
+			console.error(`Error fetching candlestick data for ${symbol}:`, error);
+			return { c: [], h: [], l: [], o: [], s: 'no_data', t: [], v: [] };
+		}
+	}
+
+	private convertCandlesToHistory(candles: StockCandles): CandlePoint[] {
+		if (!candles.t || candles.t.length === 0) {
+			return [];
+		}
+
+		const candleHistory: CandlePoint[] = [];
+		
+		for (let i = 0; i < candles.t.length; i++) {
+			candleHistory.push({
+				timestamp: candles.t[i] * 1000,
+				open: candles.o[i] || 0,
+				high: candles.h[i] || 0,
+				low: candles.l[i] || 0,
+				close: candles.c[i] || 0,
+				volume: candles.v[i] || 0
+			});
+		}
+
+		return candleHistory;
 	}
 
 	private updateCandleData(symbol: string, timestamp: number, price: number, existingData: StockData): void {
