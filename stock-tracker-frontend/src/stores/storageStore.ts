@@ -58,7 +58,6 @@ function createStorageStore() {
     const saveDataToStorage = () => {
         if (!browser) return;
         
-        // Get current data from stores
         let currentStockData: Record<string, StockData> = {};
         let currentFollowedStocks: string[] = [];
         

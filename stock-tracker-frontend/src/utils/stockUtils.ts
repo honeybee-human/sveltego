@@ -38,7 +38,6 @@ export function getTimeframeLabel(minutes: number): string {
     return `${minutes / 1440}day`;
 }
 
-// Additional utility functions from appLogic.ts
 export function getDataPointCount(symbol: string, stockData: Record<string, StockData>): number {
     const data = stockData[symbol];
     if (!data) return 0;
@@ -46,4 +45,11 @@ export function getDataPointCount(symbol: string, stockData: Record<string, Stoc
         data.priceHistory?.length || 0,
         data.candleHistory?.length || 0
     );
+}
+
+export function isUSStock(symbol: string): boolean {
+    return !symbol.includes('.') && 
+           !symbol.includes('-') && 
+           !/[^A-Z]/.test(symbol) && 
+           symbol.length <= 5;
 }

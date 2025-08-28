@@ -9,10 +9,8 @@
 		type ChartType
 	} from '../lib/appLogic.js';
 
-	// Create the stock tracker instance
 	const stockTracker = createStockTracker();
 
-	// Destructure stores from the tracker for proper reactivity
 	const {
 		followedStocks: followedStocksStore,
 		stockData: stockDataStore,
@@ -22,7 +20,7 @@
 		lastUpdateTime: lastUpdateTimeStore,
 		chartType: chartTypeStore,
 		selectedTimeframe: selectedTimeframeStore,
-		// Methods
+
 		initialize,
 		cleanup,
 		changeChartType,
@@ -36,7 +34,6 @@
 		getDataPointCount
 	} = stockTracker;
 
-	// Reactive state from the stores
 	$: followedStocks = $followedStocksStore;
 	$: stockData = $stockDataStore;
 	$: searchQuery = $searchQueryStore;
@@ -58,7 +55,6 @@
 		cleanup();
 	});
 
-	// Event handlers - now using the destructured methods
 	const handleSearchInput = () => {
 		searchStocks();
 	};
@@ -208,7 +204,7 @@
 								{#if stockData[symbol]?.quote}
 									<div class="stock-info">
 										<div class="price">
-											{formatPrice(stockData[symbol].quote.c)}
+											${formatPrice(stockData[symbol].quote.c)}
 										</div>
 										<div class="row">
 										<div class="change" class:positive={stockData[symbol].quote.d > 0} class:negative={stockData[symbol].quote.d < 0}>

@@ -115,7 +115,7 @@ export class ChartUpdater {
 	}
 
 	private updateTimeAxis(startTime: number, endTime: number): void {
-		const selectedTimeframe = (endTime - startTime) / (60 * 1000); // Convert back to minutes
+		const selectedTimeframe = (endTime - startTime) / (60 * 1000);
 		this.chart.updateOptions({
 			xaxis: {
 				min: startTime,

@@ -6,13 +6,12 @@ import { storageStore } from '../stores/storageStore';
 import { getChartOptions } from './chartConfig';
 import { ChartUpdater } from './chartUpdater';
 import { DataLoader } from './dataLoader';
-import { formatPrice, formatPercent, getDataPointCount } from '../utils/stockUtils';
+import { formatPrice, formatPercent, getDataPointCount, isUSStock } from '../utils/stockUtils';
 import type { ChartType } from '../types';
 
 type ApexCharts = any;
 
 export function createStockTracker() {
-	// Internal state
 	let chart: ApexCharts;
 	let ApexChartsClass: any = null;
 	let intervalId: number | null = null;
@@ -20,14 +19,12 @@ export function createStockTracker() {
 	let chartUpdater: ChartUpdater;
 	let dataLoader: DataLoader;
 
-	// Current values for internal use
 	let currentFollowedStocks: string[] = [];
 	let currentStockData: Record<string, any> = {};
 	let currentSearchQuery: string = '';
 	let currentChartType: ChartType = 'area';
 	let currentSelectedTimeframe: number = 30;
 
-	// Subscribe to store changes to keep internal state in sync
 	appStore.followedStocks.subscribe(value => currentFollowedStocks = value);
 	stockStore.stockData.subscribe(value => currentStockData = value);
 	appStore.searchQuery.subscribe(value => currentSearchQuery = value);
@@ -43,7 +40,6 @@ export function createStockTracker() {
 		const ApexChartsModule = await import('apexcharts');
 		ApexChartsClass = ApexChartsModule.default;
 		
-		// Load stored data using storageStore
 		storageStore.loadStoredData();
 		
 		initChart();
@@ -59,7 +55,6 @@ export function createStockTracker() {
 		if (chart) {
 			chart.destroy();
 		}
-		// Save data using storageStore
 		if (browser) {
 			storageStore.saveDataToStorage();
 		}
@@ -87,7 +82,6 @@ export function createStockTracker() {
 			updateChart();
 			appStore.setLastUpdateTime(new Date().toLocaleTimeString());
 			
-			// Save data using storageStore
 			storageStore.saveDataToStorage();
 		} catch (error) {
 			console.error('Failed to load stock data:', error);
@@ -122,7 +116,8 @@ export function createStockTracker() {
 
 		try {
 			const searchResponse = await dataLoader.searchStocks(currentSearchQuery);
-			appStore.setSearchResults(searchResponse.result || []);
+			const filteredResults = (searchResponse.result || []).filter(result => isUSStock(result.symbol));
+			appStore.setSearchResults(filteredResults);
 		} catch (error) {
 			console.error('Search failed:', error);
 			appStore.setSearchResults([]);
@@ -133,7 +128,7 @@ export function createStockTracker() {
 		if (!currentFollowedStocks.includes(symbol)) {
 			appStore.addFollowedStock(symbol);
 			loadStockData();
-			storageStore.saveDataToStorage(); // Save immediately after adding
+			storageStore.saveDataToStorage();
 		}
 		appStore.setSearchQuery('');
 		appStore.setSearchResults([]);
@@ -143,21 +138,20 @@ export function createStockTracker() {
 		appStore.removeFollowedStock(symbol);
 		stockStore.removeStock(symbol);
 		updateChart();
-		storageStore.saveDataToStorage(); // Save immediately after removing
+		storageStore.saveDataToStorage();
 	}
 
 	function handleClearHistory(): void {
 		stockStore.clearHistory();
 		dataLoader.clearCandleData();
 		updateChart();
-		// Clear localStorage using storageStore
+		
 		if (browser) {
 			storageStore.clearStoredData();
 		}
 	}
 
 	return {
-		// Stores for reactive state
 		followedStocks: appStore.followedStocks,
 		stockData: stockStore.stockData,
 		searchQuery: appStore.searchQuery,
@@ -167,7 +161,6 @@ export function createStockTracker() {
 		chartType: chartStore.chartType,
 		selectedTimeframe: chartStore.selectedTimeframe,
 		
-		// Methods
 		initialize,
 		cleanup,
 		changeChartType: handleChangeChartType,

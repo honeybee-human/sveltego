@@ -1,7 +1,7 @@
 .trading-panel {
         max-width: 800px;
         margin: 0 auto;
-        padding: 1rem;
+        padding: 0rem 1rem;
     }
 
     .account-summary {
@@ -43,11 +43,10 @@
     }
 
     input {
-        width: 100%;
+        width: 90%;
         padding: 0.5rem;
         border: 1px solid #ddd;
         border-radius: 4px;
-        font-size: 1rem;
     }
 
     .search-container {
@@ -99,7 +98,6 @@
         font-size: 0.875rem;
     }
 
-    /* Selected Stock Styles */
     .selected-stock {
         margin: 1rem 0;
         padding: 1rem;

@@ -2,7 +2,7 @@
     import { onMount } from 'svelte';
     import { tradingStore } from '../stores/tradingStore';
     import { stockStore } from '../stores/stockStore';
-    import { formatPrice, formatPercent, calculateGainLoss } from '../utils/stockUtils';
+    import { formatPrice, formatPercent, calculateGainLoss, isUSStock } from '../utils/stockUtils';
 
     let selectedSymbol = '';
     let quantity = 1;
@@ -10,16 +10,6 @@
     let searchQuery = '';
     let searchResults: any[] = [];
     let loading = false;
-
-    // Function to filter out international stocks
-    function isUSStock(symbol: string): boolean {
-        // Filter out stocks with dots (international exchanges like .BK, .BC, .L, etc.)
-        // and other common international patterns
-        return !symbol.includes('.') && 
-               !symbol.includes('-') && 
-               !/[^A-Z]/.test(symbol) && 
-               symbol.length <= 5; // Most US stocks are 1-5 characters
-    }
 
     onMount(async () => {
         for (const symbol of Object.keys($stockStore)) {
@@ -40,7 +30,6 @@
         loading = true;
         try {
             const allResults = await stockStore.searchStocks(searchQuery);
-            // Filter to only show US stocks
             searchResults = allResults.filter(result => isUSStock(result.symbol));
         } catch (e) {
             error = 'Search failed. Please try again.';
@@ -103,9 +92,9 @@
             <span class="amount">${formatPrice($tradingStore.balance)}</span>
         </div>
 
-        <h3>Place Trade</h3>
         <div class="form-group">
-            <label for="search">Search Stocks:</label>
+        <br/>
+            <label for="search">Place Trade:</label>
             <div class="search-container">
                 <input
                     type="text"
@@ -120,8 +109,6 @@
                 {#if searchResults.length > 0}
                     <div class="search-results">
                         {#each searchResults.slice(0, 5) as result}
-                            <!-- svelte-ignore a11y_click_events_have_key_events -->
-                            <!-- svelte-ignore a11y_no_static_element_interactions -->
                             <div 
                                 class="search-result" 
                                 role="button"
@@ -142,7 +129,6 @@
                 {/if}
             </div>
 
-        <!-- Selected Stock Display -->
         {#if selectedSymbol}
             <div class="selected-stock">
                 <h4>Selected Stock:</h4>
