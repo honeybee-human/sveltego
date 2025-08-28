@@ -1,3 +1,5 @@
+import type { StockData } from '../types';
+
 export function formatPrice(price: number | undefined): string {
     if (price === undefined) return 'N/A';
     return `${price.toFixed(2)}`;
@@ -34,4 +36,14 @@ export function getTimeframeLabel(minutes: number): string {
     if (minutes === 60) return '1hr';
     if (minutes < 1440) return `${minutes / 60}hr`;
     return `${minutes / 1440}day`;
-} 
+}
+
+// Additional utility functions from appLogic.ts
+export function getDataPointCount(symbol: string, stockData: Record<string, StockData>): number {
+    const data = stockData[symbol];
+    if (!data) return 0;
+    return Math.max(
+        data.priceHistory?.length || 0,
+        data.candleHistory?.length || 0
+    );
+}

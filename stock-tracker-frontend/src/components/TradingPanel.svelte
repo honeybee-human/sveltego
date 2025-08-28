@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { tradingStore } from '../stores/tradingStore';
-    import { stocks } from '../stores/stockStore';
+    import { stockStore } from '../stores/stockStore';
     import { formatPrice, formatPercent, calculateGainLoss } from '../utils/stockUtils';
 
     let selectedSymbol = '';
@@ -11,10 +11,20 @@
     let searchResults: any[] = [];
     let loading = false;
 
+    // Function to filter out international stocks
+    function isUSStock(symbol: string): boolean {
+        // Filter out stocks with dots (international exchanges like .BK, .BC, .L, etc.)
+        // and other common international patterns
+        return !symbol.includes('.') && 
+               !symbol.includes('-') && 
+               !/[^A-Z]/.test(symbol) && 
+               symbol.length <= 5; // Most US stocks are 1-5 characters
+    }
+
     onMount(async () => {
-        for (const symbol of Object.keys($stocks)) {
+        for (const symbol of Object.keys($stockStore)) {
             try {
-                await stocks.fetchStockData(symbol);
+                await stockStore.fetchStockData(symbol);
             } catch (e) {
                 console.error(`Failed to fetch initial data for ${symbol}:`, e);
             }
@@ -29,7 +39,9 @@
 
         loading = true;
         try {
-            searchResults = await stocks.searchStocks(searchQuery);
+            const allResults = await stockStore.searchStocks(searchQuery);
+            // Filter to only show US stocks
+            searchResults = allResults.filter(result => isUSStock(result.symbol));
         } catch (e) {
             error = 'Search failed. Please try again.';
             searchResults = [];
@@ -39,7 +51,7 @@
 
     async function handleAddStock(symbol: string) {
         try {
-            await stocks.fetchStockData(symbol);
+            await stockStore.fetchStockData(symbol);
             selectedSymbol = symbol;
             searchQuery = '';
             searchResults = [];
@@ -50,7 +62,7 @@
 
     function handleBuy() {
         try {
-            const stock = $stocks[selectedSymbol];
+            const stock = $stockStore[selectedSymbol];
             if (!stock) {
                 throw new Error('Stock not found');
             }
@@ -63,7 +75,7 @@
 
     function handleSell() {
         try {
-            const stock = $stocks[selectedSymbol];
+            const stock = $stockStore[selectedSymbol];
             if (!stock) {
                 throw new Error('Stock not found');
             }
@@ -94,7 +106,7 @@
                     id="search"
                     bind:value={searchQuery}
                     on:input={handleSearch}
-                    placeholder="Search stocks (e.g., AAPL, GOOGL, AMD)"
+                    placeholder="Search US stocks (e.g., AAPL, GOOGL, AMD)"
                 />
                 {#if loading}
                     <span class="loading">Searching...</span>
@@ -125,6 +137,29 @@
             </div>
         </div>
 
+        <!-- Selected Stock Display -->
+        {#if selectedSymbol}
+            <div class="selected-stock">
+                <h4>Selected Stock:</h4>
+                <div class="stock-info">
+                    <div class="stock-header">
+                        <span class="symbol">{selectedSymbol}</span>
+                        {#if $stockStore[selectedSymbol]}
+                            <span class="price">${formatPrice($stockStore[selectedSymbol].quote.c)}</span>
+                        {/if}
+                    </div>
+                    {#if $stockStore[selectedSymbol]}
+                        <div class="stock-details">
+                            <span class="change" class:positive={$stockStore[selectedSymbol].quote.d > 0} class:negative={$stockStore[selectedSymbol].quote.d < 0}>
+                                {$stockStore[selectedSymbol].quote.d > 0 ? '+' : ''}{formatPrice($stockStore[selectedSymbol].quote.d)} 
+                                ({formatPercent($stockStore[selectedSymbol].quote.dp)})
+                            </span>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        {/if}
+
         <div class="form-group">
             <label for="quantity">Quantity:</label>
             <input 
@@ -136,16 +171,16 @@
             />
         </div>
 
-        {#if selectedSymbol && $stocks[selectedSymbol]}
+        {#if selectedSymbol && $stockStore[selectedSymbol]}
             <div class="trade-preview">
-                <p>Current Price: ${formatPrice($stocks[selectedSymbol].quote.c)}</p>
-                <p>Total: ${formatPrice($stocks[selectedSymbol].quote.c * quantity)}</p>
+                <p>Current Price: ${formatPrice($stockStore[selectedSymbol].quote.c)}</p>
+                <p>Total: ${formatPrice($stockStore[selectedSymbol].quote.c * quantity)}</p>
             </div>
         {/if}
 
         <div class="trade-buttons">
-            <button class="buy-btn" on:click={handleBuy}>Buy</button>
-            <button class="sell-btn" on:click={handleSell}>Sell</button>
+            <button class="buy-btn" on:click={handleBuy} disabled={!selectedSymbol}>Buy</button>
+            <button class="sell-btn" on:click={handleSell} disabled={!selectedSymbol}>Sell</button>
         </div>
 
         {#if error}
@@ -160,8 +195,8 @@
         {:else}
             <div class="holdings-list">
                 {#each Object.entries($tradingStore.holdings) as [symbol, holding]}
-                    {#if $stocks[symbol]}
-                        {@const { gainLoss, percentGainLoss } = calculateGainLoss($stocks[symbol].quote.c, holding.averagePrice, holding.quantity)}
+                    {#if $stockStore[symbol]}
+                        {@const { gainLoss, percentGainLoss } = calculateGainLoss($stockStore[symbol].quote.c, holding.averagePrice, holding.quantity)}
                         <div class="holding-item">
                             <div class="holding-header">
                                 <span class="symbol">{symbol}</span>
@@ -169,7 +204,7 @@
                             </div>
                             <div class="holding-details">
                                 <div>Avg Price: ${formatPrice(holding.averagePrice)}</div>
-                                <div>Current: ${formatPrice($stocks[symbol].quote.c)}</div>
+                                <div>Current: ${formatPrice($stockStore[symbol].quote.c)}</div>
                                 <div class:positive={gainLoss > 0} class:negative={gainLoss < 0}>
                                     P/L: ${formatPrice(gainLoss)} ({formatPercent(percentGainLoss)})
                                 </div>
@@ -206,180 +241,5 @@
 </div>
 
 <style>
-    .trading-panel {
-        padding: 1rem;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .account-summary {
-        margin-bottom: 1.5rem;
-    }
-
-    .balance {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .trading-form {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 6px;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-group {
-        margin-bottom: 1rem;
-        position: relative;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-
-    input {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
-
-    .search-container {
-        position: relative;
-    }
-
-    .loading {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #6c757d;
-        font-size: 0.875rem;
-    }
-
-    .search-results {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-top: 4px;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .search-result {
-        padding: 8px 12px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #eee;
-    }
-
-    .search-result:last-child {
-        border-bottom: none;
-    }
-
-    .search-result:hover {
-        background: #f8f9fa;
-    }
-
-    .search-result .symbol {
-        font-weight: 600;
-        margin-right: 8px;
-    }
-
-    .search-result .description {
-        color: #6c757d;
-        font-size: 0.875rem;
-    }
-
-    .trade-preview {
-        margin: 1rem 0;
-        padding: 0.5rem;
-        background: #e9ecef;
-        border-radius: 4px;
-    }
-
-    .trade-buttons {
-        display: flex;
-        gap: 1rem;
-    }
-
-    button {
-        flex: 1;
-        padding: 0.75rem;
-        border: none;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .buy-btn {
-        background: #28a745;
-        color: white;
-    }
-
-    .sell-btn {
-        background: #dc3545;
-        color: white;
-    }
-
-    .error {
-        color: #dc3545;
-        margin-top: 0.5rem;
-    }
-
-    .holdings, .transactions {
-        margin-top: 1.5rem;
-    }
-
-    .holding-item, .transaction-item {
-        padding: 1rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
-    }
-
-    .holding-header, .transaction-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-    }
-
-    .symbol {
-        font-weight: 600;
-    }
-
-    .positive {
-        color: #28a745;
-    }
-
-    .negative {
-        color: #dc3545;
-    }
-
-    .buy {
-        border-left: 4px solid #28a745;
-    }
-
-    .sell {
-        border-left: 4px solid #dc3545;
-    }
-
-    .no-holdings, .no-transactions {
-        color: #6c757d;
-        font-style: italic;
-    }
+	@import '../styles/panel.css';
 </style>

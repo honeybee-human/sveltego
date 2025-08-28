@@ -57,6 +57,8 @@ function createStockStore() {
 
     return {
         subscribe,
+        stockData: { subscribe },
+        setStockData: (data: Record<string, StockData>) => set(data),
         addStock: (symbol: string, data: StockData) => {
             update(stocks => ({
                 ...stocks,
@@ -80,6 +82,19 @@ function createStockStore() {
                         ...data
                     }
                 };
+            });
+        },
+        clearHistory: () => {
+            update(stocks => {
+                const clearedStocks: Record<string, StockData> = {};
+                Object.keys(stocks).forEach(symbol => {
+                    clearedStocks[symbol] = {
+                        ...stocks[symbol],
+                        priceHistory: [],
+                        candleHistory: []
+                    };
+                });
+                return clearedStocks;
             });
         },
         fetchStockData: async (symbol: string) => {
@@ -135,4 +150,4 @@ function createStockStore() {
     };
 }
 
-export const stocks = createStockStore(); 
+export const stockStore = createStockStore();

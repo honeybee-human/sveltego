@@ -7,7 +7,7 @@
 		type StockData,
 		type SearchResult,
 		type ChartType
-	} from './appLogic.js';
+	} from '../lib/appLogic.js';
 
 	// Create the stock tracker instance
 	const stockTracker = createStockTracker();
@@ -88,28 +88,28 @@
 							class:active={chartType === 'line'}
 							on:click={() => changeChartType('line')}
 						>
-							📈 Line
+							Line
 						</button>
 						<button 
 							class="chart-type-btn" 
 							class:active={chartType === 'candlestick'}
 							on:click={() => changeChartType('candlestick')}
 						>
-							🕯️ Candlestick
+							Candlestick
 						</button>
 						<button 
 							class="chart-type-btn" 
 							class:active={chartType === 'area'}
 							on:click={() => changeChartType('area')}
 						>
-							📊 Area
+							Area
 						</button>
 						<button 
 							class="chart-type-btn" 
 							class:active={chartType === 'volume'}
 							on:click={() => changeChartType('volume')}
 						>
-							📦 Volume
+							Volume
 						</button>
 					</div>
 
