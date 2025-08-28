@@ -5,6 +5,56 @@
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width" />
 		<title>Stock Tracker</title>
+		<style>
+			/* Global scrollbar styles - thin and green */
+			* {
+				scrollbar-width: thin;
+				scrollbar-color: #87ad90 #ffffff;
+			}
+
+			*::-webkit-scrollbar {
+				width: 6px;
+				height: 6px;
+			}
+
+			*::-webkit-scrollbar-track {
+				background: #ffffff;
+				border-radius: 3px;
+			}
+
+			*::-webkit-scrollbar-thumb {
+				background: #87ad90;
+				border-radius: 3px;
+			}
+
+			*::-webkit-scrollbar-thumb:hover {
+				background: #218838;
+			}
+
+			html, body {
+				scrollbar-width: thin;
+				scrollbar-color: #87ad90 #f1f1f1;
+			}
+
+			html::-webkit-scrollbar, body::-webkit-scrollbar {
+				width: 6px;
+				height: 6px;
+			}
+
+			html::-webkit-scrollbar-track, body::-webkit-scrollbar-track {
+				background: #ffffff;
+				border-radius: 3px;
+			}
+
+			html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+				background: #87ad90;
+				border-radius: 3px;
+			}
+
+			html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover {
+				background: #218838;
+			}
+		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
