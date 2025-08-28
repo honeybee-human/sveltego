@@ -1,38 +1,38 @@
-# sv
+## Stock Tracker
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Stock Tracker is a web application that tracks stock prices and allows users to buy and sell stocks.
 
-## Creating a project
+### Built with
 
-If you're seeing this, you've probably already done this step. Congrats!
+- Svelte
+- Vue.js
+- Golang
+- Finnhub API
+- Vite
 
-```bash
-# create a new project in the current directory
-npx sv create
+### Install
 
-# create a new project in my-app
-npx sv create my-app
-```
+1. Navigate to the backend directory
+   `cd stock-tracker`
+2. Create a .env file with your Finnhub API key
+   `echo FINNHUB_API_KEY=your_api_key_here > .env`
+3. Install Go dependencies and run the server
+   `go mod tidy`
+   `go run main.go`
+4. Open a new terminal and navigate to the frontend directory
+   `cd stock-tracker-frontend`
+5. Install NPM packages
+   `npm install`
+6. Start application
+   `npm run dev`
 
-## Developing
+### Features
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+The user can choose up to 5 stocks to track by searching and selecting from existing options. They start with a balance of $10000.00 in their trading account, and the option to buy or sell different quantities of shares. Current Holdings and Transaction History are kept track of when a user buys or sells a share. Options for viewing by chart include line, candlestick, area, and volume, with timeframes of 5min up to 1 day. Each stock display card has stock name, price, open, high and low.
 
-```bash
-npm run dev
+### Terms
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Open - The price of the stock when the market opens for the day.
+- High - The highest price the stock reached during the day.
+- Low - The lowest price the stock reached during the day.
+- Candlestick chart - shows open, close, high, and low for each time period.

@@ -102,7 +102,20 @@
                 {#if searchResults.length > 0}
                     <div class="search-results">
                         {#each searchResults.slice(0, 5) as result}
-                            <div class="search-result" on:click={() => handleAddStock(result.symbol)}>
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div 
+                                class="search-result" 
+                                role="button"
+                                tabindex="0"
+                                on:click={() => handleAddStock(result.symbol)}
+                                on:keydown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        handleAddStock(result.symbol);
+                                    }
+                                }}
+                            >
                                 <span class="symbol"><strong>{result.symbol}</strong></span>
                                 <span class="description">{result.description}</span>
                             </div>
@@ -369,4 +382,4 @@
         color: #6c757d;
         font-style: italic;
     }
-</style> 
+</style>
