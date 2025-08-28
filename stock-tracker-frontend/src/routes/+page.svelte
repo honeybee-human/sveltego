@@ -66,13 +66,7 @@
 
 <main>
 	<div class="container">
-		<header>
-			<h1>📈 Advanced Stock Tracker</h1>
-			<p>Professional stock tracking with multiple chart types and persistent data</p>
-			{#if lastUpdateTime}
-				<p class="last-update">Last updated: {lastUpdateTime}</p>
-			{/if}
-		</header>
+	
 
 		<div class="main-content">
 			<div class="trading-section">
@@ -160,19 +154,18 @@
 					</div>
 
 					<button class="clear-btn" on:click={clearHistory}>
-						🗑️ Clear History
+						Clear
 					</button>
-					
-					<div class="update-info">
-						Updates every 15 seconds • Persistent data storage
-					</div>
+							{#if lastUpdateTime}
+				<p class="last-update">Last updated: {lastUpdateTime}</p>
+			{/if}
 				</div>
 
 				<div class="search-section">
 					<div class="search-box">
 						<input
 							type="text"
-							placeholder="Search stocks (e.g., AAPL, GOOGL, AMD)"
+							placeholder="Follow stocks (e.g., AAPL, GOOGL, AMD)"
 							bind:value={$searchQueryStore}
 							on:input={handleSearchInput}
 						/>
@@ -195,7 +188,6 @@
 				</div>
 
 				<div class="stocks-section">
-					<h2>Followed Stocks</h2>
 					<div class="stock-cards">
 						{#each followedStocks as symbol}
 							<div class="stock-card">
@@ -218,13 +210,15 @@
 										<div class="price">
 											{formatPrice(stockData[symbol].quote.c)}
 										</div>
+										<div class="row">
 										<div class="change" class:positive={stockData[symbol].quote.d > 0} class:negative={stockData[symbol].quote.d < 0}>
 											{formatPrice(stockData[symbol].quote.d)} ({formatPercent(stockData[symbol].quote.dp)})
 										</div>
 										<div class="details">
-											<span>Open: {formatPrice(stockData[symbol].quote.o)}</span>
-											<span>High: {formatPrice(stockData[symbol].quote.h)}</span>
-											<span>Low: {formatPrice(stockData[symbol].quote.l)}</span>
+											Open: {formatPrice(stockData[symbol].quote.o)}
+											| High: {formatPrice(stockData[symbol].quote.h)}
+											| Low: {formatPrice(stockData[symbol].quote.l)}
+										</div>
 										</div>
 									</div>
 								{:else}

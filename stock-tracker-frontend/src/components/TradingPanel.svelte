@@ -88,15 +88,21 @@
 </script>
 
 <div class="trading-panel">
-    <div class="account-summary">
-        <h2>Trading Account</h2>
+	<header>
+			<h1>📈 Advanced Stock Tracker</h1>
+			
+				
+			
+		</header>
+        	<div class="update-info">
+						Updates every 15 seconds • Persistent data storage
+					</div>
+        <h3>Trading Account</h3>
         <div class="balance">
             <span>Balance:</span>
             <span class="amount">${formatPrice($tradingStore.balance)}</span>
         </div>
-    </div>
 
-    <div class="trading-form">
         <h3>Place Trade</h3>
         <div class="form-group">
             <label for="search">Search Stocks:</label>
@@ -135,7 +141,6 @@
                     </div>
                 {/if}
             </div>
-        </div>
 
         <!-- Selected Stock Display -->
         {#if selectedSymbol}
